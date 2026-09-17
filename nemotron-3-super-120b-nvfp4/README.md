@@ -71,6 +71,7 @@ configuration. The matrix covers reasoning efforts `none`, `low`, `medium`, and
 `xhigh` at concurrency levels 1, 2, 4, and 6. Each concurrency level was warmed
 up before measurement.
 
+- [Detailed benchmark report, tables, JSON, and five summary plots](benchmarks/2026-09-17-mtp-comparison/)
 - [Configuration summary](benchmark-results/configuration_summary.csv)
 - [Full throughput matrix](benchmark-results/combined_matrix.csv)
 
