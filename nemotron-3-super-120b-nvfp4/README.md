@@ -64,6 +64,20 @@ The external MTPv2 head needs `--gpu-memory-utilization 0.82` to retain the
 short of the 1.48 GiB required. EAGLE was not selected because Nemotron-3 Super
 has native MTP support and NVIDIA provides this architecture-matched MTPv2 head.
 
+## Benchmark report
+
+The published results contain 16 measured cells and 160 successful requests per
+configuration. The matrix covers reasoning efforts `none`, `low`, `medium`, and
+`xhigh` at concurrency levels 1, 2, 4, and 6. Each concurrency level was warmed
+up before measurement.
+
+- [Configuration summary](benchmark-results/configuration_summary.csv)
+- [Full throughput matrix](benchmark-results/combined_matrix.csv)
+
+![Mean throughput and draft-token acceptance](benchmark-results/configuration_summary.png)
+
+![Throughput by reasoning effort and concurrency](benchmark-results/throughput_by_effort_and_concurrency.png)
+
 ## Validated configuration
 
 - One NVIDIA GB10 GPU with 128 GB unified memory
