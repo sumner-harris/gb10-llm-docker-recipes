@@ -7,6 +7,15 @@ This recipe intentionally does **not** enable EAGLE or another speculative
 decoder. On the tested GB10 system, the non-speculative configuration delivered
 substantially higher throughput than the official EAGLE draft head.
 
+## Benchmark report
+
+The [full baseline-versus-EAGLE report](benchmarks/2026-09-17-eagle-comparison/)
+contains the 72-cell concurrency/reasoning matrix, five summary plots, and
+machine-readable CSV/JSON results. Across every tested concurrency and both
+reasoning modes, the non-speculative baseline was faster. At concurrency 6 it
+delivered 69.25 output tok/s with reasoning disabled, versus 34.95 for EAGLE-1
+and 34.50 for EAGLE-3.
+
 ## Pinned artifacts
 
 - vLLM: `vllm/vllm-openai:v0.28.0`
