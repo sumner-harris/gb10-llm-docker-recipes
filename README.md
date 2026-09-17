@@ -1,2 +1,13 @@
-# gb10-recipes
-This contains the docker recipes for various open weight LLMs that I have found to work well on GB10 chip machines like DGX Spark, HP ZGX Nano, etc. 
+# GB10 LLM Docker recipes
+
+Known-good, reproducible Docker launch recipes for open-weight LLMs on NVIDIA
+GB10 systems such as DGX Spark and HP ZGX Nano.
+
+Each recipe pins both the serving image and model checkpoint. Secrets are never
+stored in the repository; gated models read `HF_TOKEN` from the environment.
+
+## Recipes
+
+| Model | Runtime | API port | Notes |
+| --- | --- | ---: | --- |
+| [Mistral Small 4 119B NVFP4](mistral-small-4-119b-nvfp4/) | vLLM 0.28.0 | 8021 | Validated without speculative decoding/EAGLE |
