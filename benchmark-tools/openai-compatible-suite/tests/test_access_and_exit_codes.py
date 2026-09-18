@@ -154,12 +154,12 @@ class GPQAControlFlowTests(unittest.TestCase):
             self.assertIn("FAIL aime25", status)
             invocation = (run_dir / "lm_eval_invocation.txt").read_text(encoding="utf-8")
             self.assertIn("timeout=21600", invocation)
-            self.assertIn("max_gen_toks=120000", invocation)
+            self.assertIn("max_gen_toks=130000", invocation)
 
     def test_capability_and_performance_timeouts_are_separate(self):
         config = (SUITE_DIR / "config.env.example").read_text(encoding="utf-8")
         self.assertIn("EVAL_TIMEOUT=21600", config)
-        self.assertIn("MAX_GEN_TOKS=120000", config)
+        self.assertIn("MAX_GEN_TOKS=130000", config)
         self.assertIn("PERF_TIMEOUT=3600", config)
         performance_runner = (SUITE_DIR / "scripts" / "run_perf.py").read_text(
             encoding="utf-8"

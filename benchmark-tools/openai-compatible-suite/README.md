@@ -13,7 +13,7 @@ Capability scoring is sequential by task and is **not** a concurrency sweep:
 - GPQA Diamond through the official lm-eval task
   `gpqa_diamond_cot_zeroshot` (deterministic `generate_until`/chain-of-thought)
   and the gated `Idavidrein/gpqa` dataset.
-- One deterministic pass (`temperature=0`) with a 120,000-token generation
+- One deterministic pass (`temperature=0`) with a 130,000-token generation
   ceiling and a 21,600-second (six-hour) per-request timeout.
 - Raw lm-eval samples and a strict post-run token-count audit that rejects
   empty responses and likely generation-limit hits until they are recovered.
@@ -24,7 +24,7 @@ scores at several concurrency levels. Set it to `1` if the server cannot batch
 requests reliably; use the same value for every model in a comparison.
 
 The long capability timeout is intentional: reasoning models can produce valid
-120K-budget generations that take several hours. A shorter client timeout
+130K-budget generations that take several hours. A shorter client timeout
 would cancel and effectively truncate those samples even though the server is
 still generating. `EVAL_TIMEOUT` remains configurable, but comparisons should
 use the same value and report any client timeout. Performance requests use the
@@ -80,9 +80,9 @@ keys outside version control; `config.env` and `results/` are ignored.
 Before comparing models, hold constant the checkpoint revision, chat template,
 reasoning mode, quantization, vLLM version and flags, KV-cache dtype,
 speculative decoding, context limit, and hardware power/clock policy. A
-120,000-token client ceiling cannot override a smaller server context window.
-The default assumes at least a 131,072-token server context and short benchmark
-prompts; verify prompt plus output fits before comparing models.
+130,000-token client ceiling cannot override a smaller server context window.
+The default assumes at least a 131,072-token server context and rendered prompts
+of at most 1,072 tokens; verify prompt plus output fits before comparing models.
 
 ## Run or resume
 

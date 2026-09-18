@@ -64,7 +64,7 @@ for task in "${selected[@]}"; do
       --model_args "model=${model_id},base_url=${chat_url},api_key=${api_key},tokenized_requests=False,num_concurrent=${EVAL_CONCURRENCY:-4},max_retries=3,timeout=${EVAL_TIMEOUT:-21600},think_end_token=</think>" \
       --tasks "$task" \
       --apply_chat_template \
-      --gen_kwargs "temperature=0,max_gen_toks=${MAX_GEN_TOKS:-120000}" \
+      --gen_kwargs "temperature=0,max_gen_toks=${MAX_GEN_TOKS:-130000}" \
       --log_samples \
       --output_path "$output"; then
     printf 'PASS %s\n' "$task" | tee -a "$RUN_DIR/lm_eval_status.txt"

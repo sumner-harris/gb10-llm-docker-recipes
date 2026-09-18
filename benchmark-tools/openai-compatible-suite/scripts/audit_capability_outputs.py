@@ -49,7 +49,7 @@ def main():
     base_url = os.environ.get("BASE_URL", "http://127.0.0.1:8000")
     api_key = os.environ.get("API_KEY", "EMPTY")
     model_id = os.environ.get("MODEL_ID", "").strip()
-    generation_ceiling = int(os.environ.get("MAX_GEN_TOKS", "120000"))
+    generation_ceiling = int(os.environ.get("MAX_GEN_TOKS", "130000"))
     request_timeout = float(os.environ.get("EVAL_TIMEOUT", "21600"))
     sample_files = sorted((args.run_dir / "lm_eval").glob("*/*/samples_*.jsonl"))
     if not sample_files:
