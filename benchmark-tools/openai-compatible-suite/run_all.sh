@@ -19,6 +19,9 @@ capability_failed=0
 if ! bash scripts/run_lm_eval.sh; then
   capability_failed=1
 fi
+if ! bash scripts/run_gpqa.sh; then
+  capability_failed=1
+fi
 bash scripts/postprocess_capability.sh
 .venv/bin/python scripts/run_perf.py
 
