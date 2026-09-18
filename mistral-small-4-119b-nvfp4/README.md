@@ -11,7 +11,7 @@ substantially higher throughput than the official EAGLE draft head.
 
 The [full baseline-versus-EAGLE report](benchmarks/2026-09-17-eagle-comparison/)
 contains the 72-cell concurrency/reasoning matrix, five summary plots, and
-machine-readable CSV/JSON results. Across every tested concurrency and both
+uniform-schema CSV/JSON results. Across every tested concurrency and both
 reasoning modes, the non-speculative baseline was faster. At concurrency 6 it
 delivered 69.25 output tok/s with reasoning disabled, versus 34.95 for EAGLE-1
 and 34.50 for EAGLE-3.

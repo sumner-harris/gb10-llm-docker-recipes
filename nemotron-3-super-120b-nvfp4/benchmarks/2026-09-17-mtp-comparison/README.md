@@ -1,8 +1,28 @@
 # Nemotron-3 Super 120B NVFP4 speculative-decoding benchmark
 
-Each configuration contains 16 measured ten-prompt cells and 160 successful measured requests. The full comparison contains 480 successful measured requests. Values below are from one complete matrix run per deployment.
+**Status: complete speculative comparison.** The report contains 48 measured
+cells and 480 successful requests: baseline, built-in MTP3, and external MTPv2
+across four historical reasoning labels and four concurrency levels. Each cell
+contains ten successful requests and one measured repeat.
 
-## Summary plots
+## Result
+
+External MTPv2 with three draft tokens is the overall winner. It averaged
+30.03 system output tokens/s across all 16 cells, 27.8% above the 23.99-token/s
+baseline and 6.4% above built-in MTP3. Weighted draft-token acceptance was
+60.8%, with a 2.83-token weighted mean accepted length.
+
+| Configuration | Measured requests | Mean output tok/s | vs baseline | Weighted acceptance | Mean accepted length |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Baseline (no speculation) | 160 | 23.99 | +0.0% | — | — |
+| Built-in MTP, 3 draft tokens | 160 | 28.22 | +17.6% | 56.6% | 2.70 |
+| External MTPv2, 3 draft tokens | 160 | 30.03 | +27.8% | 60.8% | 2.83 |
+
+Machine-readable results: [summary CSV](comparison_summary.csv),
+[per-run CSV](comparison_by_repeat.csv), and
+[structured JSON](comparison_report.json).
+
+## Uniform plots
 
 ### Output throughput
 
@@ -23,8 +43,6 @@ Each configuration contains 16 measured ten-prompt cells and 160 successful meas
 ### Reasoning-token share
 
 ![Reasoning-token share by deployment and concurrency](reasoning_share_comparison.png)
-
-Machine-readable results: [summary CSV](comparison_summary.csv), [per-run CSV](comparison_by_repeat.csv), and [structured JSON](comparison_report.json).
 
 ## Detailed results
 
@@ -79,17 +97,25 @@ Machine-readable results: [summary CSV](comparison_summary.csv), [per-run CSV](c
 | xhigh | External MTPv2, 3 draft tokens | 4 | 37.36 | +29.6% | 1.808s | 27.385s | 40.0% | 80.9% | 62.4% |
 | xhigh | External MTPv2, 3 draft tokens | 6 | 39.44 | +16.2% | 4.477s | 58.880s | 30.0% | 95.5% | 58.3% |
 
-## Result
+## Interpretation and limitations
 
 External MTPv2 with three draft tokens is the overall winner. Across all 16 cells, it averages 30.03 output tokens/s versus 28.22 for built-in MTP3 and 23.99 without speculation: 27.8% above baseline and 6.4% above the embedded head. MTPv2 averages 60.8% weighted draft-token acceptance and a 2.83-token mean accepted length, versus 56.6% and 2.70 for built-in MTP3.
 
 MTPv2 is 0.9% slower than built-in MTP3 at concurrency 1, then leads by 11.0% at concurrency 2, 3.5% at concurrency 4, and 9.9% at concurrency 6. The external head therefore pays off most clearly once the server has concurrent work.
 
-## Workload
+This historical throughput matrix has one repeat per cell. Its
+`none`/`low`/`medium`/`xhigh` labels predate the current Nemotron-native
+three-mode mapping and exact per-request outbound-payload capture. The
+reasoning-label facet is reference-only and excluded from capability-score
+charts; the same-label deployment comparisons remain valid. The external
+MTPv2 deployment also required GPU-memory utilization 0.82 instead of 0.80 to
+retain the full 131,072-token context, an unavoidable material difference.
+
+## Workload and historical reasoning labels
 
 Ten fixed prompts per cell: nine deterministically selected NVIDIA SPEED-Bench `throughput_2k` prompts plus the user story prompt. Maximum output was 512 tokens, reasoning effort was explicitly `none`, `low`, `medium`, or `xhigh`, and each concurrency used two excluded warmup batches. Concurrency levels were 1, 2, 4, and 6.
 
-## Method selection
+## Deployment variants
 
 Nemotron-3 Super has native MTP support, and NVIDIA publishes the architecture-matched `nvidia/Nemotron-3-Super-120B-A12B-BF16-MTPv2` head. EAGLE was therefore not mixed into this comparison. The two speculative configurations were:
 
