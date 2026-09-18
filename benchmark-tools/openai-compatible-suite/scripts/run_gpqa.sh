@@ -46,3 +46,9 @@ fi
 
 printf 'Running official gated GPQA task %s\n' "$task"
 TASKS_OVERRIDE="$task" bash scripts/run_lm_eval.sh
+task_status=$?
+if [[ "$task_status" -ne 0 ]]; then
+  printf 'FAIL %s: lm-eval exited with status %s\n' "$task" "$task_status" \
+    | tee -a "$RUN_DIR/lm_eval_status.txt" >&2
+fi
+exit "$task_status"

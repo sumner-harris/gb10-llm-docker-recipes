@@ -25,8 +25,10 @@ requests reliably; use the same value for every model in a comparison.
 
 GPQA is an access-gated first-class stage. With the default `RUN_GPQA=auto`,
 the runner checks for a cached Hugging Face login or `HF_TOKEN` and verifies
-that the authenticated account can access the official dataset. When either is
-missing, it writes `gpqa_access.json`, records `BLOCKED` in
+that `datasets` can load the official `gpqa_diamond` builder and its gated data
+artifacts. A metadata-only repository lookup is not accepted as proof of data
+access. When authentication or dataset entitlement is missing, it writes
+`gpqa_access.json`, records `BLOCKED` in
 `lm_eval_status.txt`, and continues AIME, IFEval, and performance testing. It
 never downloads or substitutes unofficial GPQA data. To enable the stage:
 
@@ -138,3 +140,9 @@ Output tokens/s is tokenizer-dependent. For cross-family comparisons, report
 latency and task accuracy alongside token throughput, and consider
 correct-answers-per-GPU-hour rather than treating unlike tokenizers as equal
 units of useful work.
+
+Run the control-flow regression tests with:
+
+```bash
+python -m unittest discover -s tests -v
+```

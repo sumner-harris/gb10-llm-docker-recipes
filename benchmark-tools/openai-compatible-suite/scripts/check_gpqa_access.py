@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Check official GPQA dataset entitlement without exposing credentials."""
+"""Check official GPQA data access without exposing credentials."""
 
 import argparse
 import json
 from pathlib import Path
 
-from huggingface_hub import HfApi
+from datasets import load_dataset_builder
+from datasets.exceptions import DatasetNotFoundError
 from huggingface_hub.errors import (
     GatedRepoError,
     HfHubHTTPError,
@@ -15,6 +16,7 @@ from huggingface_hub.errors import (
 
 
 DATASET_ID = "Idavidrein/gpqa"
+DATASET_CONFIG = "gpqa_diamond"
 TASK = "gpqa_diamond_cot_zeroshot"
 ACCESS_URL = "https://huggingface.co/datasets/Idavidrein/gpqa"
 
@@ -24,6 +26,7 @@ def write_status(path, status, reason):
         "status": status,
         "task": TASK,
         "dataset": DATASET_ID,
+        "dataset_config": DATASET_CONFIG,
         "reason": reason,
     }
     if status == "BLOCKED":
@@ -43,13 +46,14 @@ def main():
     args = parser.parse_args()
 
     try:
-        # token=True requires a cached login or HF_TOKEN. dataset_info then
-        # verifies that the authenticated identity has accepted the gate.
-        HfApi().dataset_info(DATASET_ID, token=True)
+        # Repository metadata can be visible even when the gated data files are
+        # not. Loading the official builder/config forces datasets to resolve
+        # the actual dataset artifacts that lm-eval will use.
+        load_dataset_builder(DATASET_ID, DATASET_CONFIG, token=True)
     except LocalTokenNotFoundError:
         write_status(args.status_file, "BLOCKED", "No Hugging Face authentication was found.")
         return 10
-    except (GatedRepoError, RepositoryNotFoundError) as exc:
+    except (DatasetNotFoundError, GatedRepoError, RepositoryNotFoundError) as exc:
         write_status(
             args.status_file,
             "BLOCKED",
@@ -79,7 +83,11 @@ def main():
         )
         return 2
 
-    write_status(args.status_file, "ACCESSIBLE", "Official gated dataset access verified.")
+    write_status(
+        args.status_file,
+        "ACCESSIBLE",
+        "Official gpqa_diamond dataset builder access verified.",
+    )
     return 0
 
 
