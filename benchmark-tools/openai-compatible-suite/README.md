@@ -4,6 +4,12 @@ This client-only harness compares already-running vLLM servers with one
 deterministic capability pass and a separate fixed-work throughput matrix. It
 does not start, stop, or reconfigure a model server.
 
+Every request must carry an explicit `reasoning_effort`. The suite fails fast
+when `REASONING_EFFORT` is missing instead of inheriting a vLLM or chat-template
+default. Run each supported effort in a separate result directory. Results from
+requests that omitted the field are reference-only and must not be placed in an
+equivalent-effort comparison table.
+
 ## What it runs
 
 Capability scoring is sequential by task and is **not** a concurrency sweep:
@@ -77,6 +83,14 @@ Edit `config.env`. `BASE_URL` is the server origin before `/v1`. Leave
 `MODEL_ID` empty only when the endpoint advertises exactly one model. Keep API
 keys outside version control; `config.env` and `results/` are ignored.
 
+Set `REASONING_EFFORT` to an explicitly supported value such as `none`, `low`,
+or `high`. Support is model/template-specific: probe every chosen value and
+confirm that it changes the intended thinking mode before running the full
+matrix. Do not invent a common `low` or `medium` row for a model that does not
+implement it. The configured value is sent in capability/GPQA generation
+arguments and as a top-level Chat Completions field for probe and performance
+requests; it is also recorded in the probe and performance artifacts.
+
 Before comparing models, hold constant the checkpoint revision, chat template,
 reasoning mode, quantization, vLLM version and flags, KV-cache dtype,
 speculative decoding, context limit, and hardware power/clock policy. A
@@ -125,7 +139,7 @@ The important outputs are:
 
 ```text
 results/<run>/
-  probe.json
+  probe.json                         # includes explicit reasoning_effort
   lm_eval_status.txt
   gpqa_access.json                 # ACCESSIBLE or safe BLOCKED/ERROR details
   lm_eval/                         # official results and raw samples
@@ -134,7 +148,7 @@ results/<run>/
   performance.json                 # one summary per completed cell
   performance_requests.jsonl       # request-level timing/usage/errors
   performance/
-    run_config.json
+    run_config.json                  # includes explicit reasoning_effort
     cells/<scenario>_c<N>.json      # atomic resume checkpoints
 ```
 

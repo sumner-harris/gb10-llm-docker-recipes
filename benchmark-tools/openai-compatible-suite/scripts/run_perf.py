@@ -19,6 +19,7 @@ RUN_DIR = Path(os.environ.get("RUN_DIR", "results/manual"))
 REQUESTS = int(os.getenv("PERF_REQUESTS", "24"))
 CONCURRENCIES = [int(value) for value in os.getenv("PERF_CONCURRENCIES", "1,4,8").split(",")]
 TIMEOUT = float(os.getenv("PERF_TIMEOUT", "3600"))
+REASONING_EFFORT = os.getenv("REASONING_EFFORT", "").strip()
 
 SCENARIOS = [
     {"name": "interactive", "prompt_tokens": 512, "output_tokens": 256},
@@ -109,7 +110,10 @@ async def one_request(client, model_id, prompt, output_tokens, semaphore, reques
                 max_tokens=output_tokens,
                 stream=True,
                 stream_options={"include_usage": True},
-                extra_body={"ignore_eos": True},
+                extra_body={
+                    "ignore_eos": True,
+                    "reasoning_effort": REASONING_EFFORT,
+                },
             )
             async for event in stream:
                 if event.usage is not None:
@@ -160,6 +164,10 @@ def rebuild_aggregates(performance_dir):
 
 
 async def main():
+    if not REASONING_EFFORT:
+        raise RuntimeError(
+            "REASONING_EFFORT must be set explicitly; model/template defaults are not benchmark-valid"
+        )
     performance_dir = RUN_DIR / "performance"
     cell_dir = performance_dir / "cells"
     cell_dir.mkdir(parents=True, exist_ok=True)
@@ -172,6 +180,7 @@ async def main():
         "concurrencies": CONCURRENCIES,
         "scenarios": SCENARIOS,
         "temperature": 0,
+        "reasoning_effort": REASONING_EFFORT,
         "ignore_eos": True,
     }
     config_path = performance_dir / "run_config.json"
@@ -250,6 +259,7 @@ async def main():
                         concurrency=concurrency,
                         prompt_tokens=calibrated_tokens,
                         requested_output_tokens=scenario["output_tokens"],
+                        reasoning_effort=REASONING_EFFORT,
                     )
                 atomic_json(cell_path, {"summary": summary, "requests": results})
                 rebuild_aggregates(performance_dir)
