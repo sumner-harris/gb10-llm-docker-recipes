@@ -1,0 +1,1 @@
+schema_version,model_id,model_label,reasoning_mode,reasoning_effort_wire,benchmark_id,metric_id,score,score_unit,samples,valid_samples,temperature,seed,max_generation_tokens,result_status,run_date,report_path,harness,harness_revision,notes
