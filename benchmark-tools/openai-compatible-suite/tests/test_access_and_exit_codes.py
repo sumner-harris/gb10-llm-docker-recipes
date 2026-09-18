@@ -116,6 +116,7 @@ class GPQAControlFlowTests(unittest.TestCase):
             lm_eval.write_text(
                 "#!/usr/bin/env bash\n"
                 "if [[ \"$1\" == \"ls\" ]]; then printf '|aime25 |\n'; exit 0; fi\n"
+                "printf '%s\\n' \"$@\" > \"$RUN_DIR/lm_eval_invocation.txt\"\n"
                 "exit 23\n",
                 encoding="utf-8",
             )
@@ -140,6 +141,19 @@ class GPQAControlFlowTests(unittest.TestCase):
             self.assertNotEqual(completed.returncode, 0)
             status = (run_dir / "lm_eval_status.txt").read_text(encoding="utf-8")
             self.assertIn("FAIL aime25", status)
+            invocation = (run_dir / "lm_eval_invocation.txt").read_text(encoding="utf-8")
+            self.assertIn("timeout=10800", invocation)
+            self.assertIn("max_gen_toks=65536", invocation)
+
+    def test_capability_and_performance_timeouts_are_separate(self):
+        config = (SUITE_DIR / "config.env.example").read_text(encoding="utf-8")
+        self.assertIn("EVAL_TIMEOUT=10800", config)
+        self.assertIn("PERF_TIMEOUT=3600", config)
+        performance_runner = (SUITE_DIR / "scripts" / "run_perf.py").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn('os.getenv("PERF_TIMEOUT", "3600")', performance_runner)
+        self.assertNotIn('os.getenv("EVAL_TIMEOUT"', performance_runner)
 
 
 if __name__ == "__main__":

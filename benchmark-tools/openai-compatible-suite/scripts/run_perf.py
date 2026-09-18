@@ -18,7 +18,7 @@ MODEL_ID = os.getenv("MODEL_ID", "").strip()
 RUN_DIR = Path(os.environ.get("RUN_DIR", "results/manual"))
 REQUESTS = int(os.getenv("PERF_REQUESTS", "24"))
 CONCURRENCIES = [int(value) for value in os.getenv("PERF_CONCURRENCIES", "1,4,8").split(",")]
-TIMEOUT = float(os.getenv("EVAL_TIMEOUT", "3600"))
+TIMEOUT = float(os.getenv("PERF_TIMEOUT", "3600"))
 
 SCENARIOS = [
     {"name": "interactive", "prompt_tokens": 512, "output_tokens": 256},

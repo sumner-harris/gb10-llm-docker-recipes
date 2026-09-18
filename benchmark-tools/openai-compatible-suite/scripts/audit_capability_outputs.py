@@ -48,13 +48,14 @@ def main():
     api_key = os.environ.get("API_KEY", "EMPTY")
     model_id = os.environ.get("MODEL_ID", "").strip()
     generation_ceiling = int(os.environ.get("MAX_GEN_TOKS", "65536"))
+    request_timeout = float(os.environ.get("EVAL_TIMEOUT", "10800"))
     sample_files = sorted((args.run_dir / "lm_eval").glob("*/*/samples_*.jsonl"))
     if not sample_files:
         raise SystemExit(f"No lm-eval sample files found below {args.run_dir}")
 
     records = []
     headers = {"Authorization": f"Bearer {api_key}"}
-    with httpx.Client(timeout=3600, headers=headers) as client:
+    with httpx.Client(timeout=request_timeout, headers=headers) as client:
         if not model_id:
             model_id = discover_model(client, base_url)
         for sample_file in sample_files:

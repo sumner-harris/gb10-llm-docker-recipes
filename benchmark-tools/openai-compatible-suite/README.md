@@ -14,7 +14,7 @@ Capability scoring is sequential by task and is **not** a concurrency sweep:
   `gpqa_diamond_cot_zeroshot` (deterministic `generate_until`/chain-of-thought)
   and the gated `Idavidrein/gpqa` dataset.
 - One deterministic pass (`temperature=0`) with a 65,536-token generation
-  ceiling and a 3,600-second per-request timeout.
+  ceiling and a 10,800-second (three-hour) per-request timeout.
 - Raw lm-eval samples and a post-run token-count audit that flags likely
   generation-limit hits.
 
@@ -22,6 +22,14 @@ Capability scoring is sequential by task and is **not** a concurrency sweep:
 reduce wall time. It does not duplicate samples, change the task, or produce
 scores at several concurrency levels. Set it to `1` if the server cannot batch
 requests reliably; use the same value for every model in a comparison.
+
+The long capability timeout is intentional: reasoning models can produce valid
+65K-budget generations that take more than one hour. A shorter client timeout
+would cancel and effectively truncate those samples even though the server is
+still generating. `EVAL_TIMEOUT` remains configurable, but comparisons should
+use the same value and report any client timeout. Performance requests use the
+separate `PERF_TIMEOUT=3600`, so changing capability tolerance does not change
+the fixed-output workload.
 
 GPQA is an access-gated first-class stage. With the default `RUN_GPQA=auto`,
 the runner checks for a cached Hugging Face login or `HF_TOKEN` and verifies
