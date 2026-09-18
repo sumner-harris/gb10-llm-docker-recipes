@@ -13,6 +13,8 @@ def response_text(row):
     value = row.get("resps", "")
     while isinstance(value, list) and value:
         value = value[0]
+    if value is None or isinstance(value, list):
+        return ""
     return value if isinstance(value, str) else str(value)
 
 
@@ -47,14 +49,15 @@ def main():
     base_url = os.environ.get("BASE_URL", "http://127.0.0.1:8000")
     api_key = os.environ.get("API_KEY", "EMPTY")
     model_id = os.environ.get("MODEL_ID", "").strip()
-    generation_ceiling = int(os.environ.get("MAX_GEN_TOKS", "65536"))
+    generation_ceiling = int(os.environ.get("MAX_GEN_TOKS", "130000"))
+    request_timeout = float(os.environ.get("EVAL_TIMEOUT", "21600"))
     sample_files = sorted((args.run_dir / "lm_eval").glob("*/*/samples_*.jsonl"))
     if not sample_files:
         raise SystemExit(f"No lm-eval sample files found below {args.run_dir}")
 
     records = []
     headers = {"Authorization": f"Bearer {api_key}"}
-    with httpx.Client(timeout=3600, headers=headers) as client:
+    with httpx.Client(timeout=request_timeout, headers=headers) as client:
         if not model_id:
             model_id = discover_model(client, base_url)
         for sample_file in sample_files:
@@ -70,6 +73,7 @@ def main():
                             "doc_id": row.get("doc_id"),
                             "response_chars": len(text),
                             "response_tokens": token_count,
+                            "invalid_empty_response": not text.strip(),
                             "suspected_length_limited": token_count >= generation_ceiling - 8,
                         }
                     )
@@ -81,6 +85,9 @@ def main():
             "responses": len(task_records),
             "suspected_length_limited": sum(
                 item["suspected_length_limited"] for item in task_records
+            ),
+            "invalid_empty_responses": sum(
+                item["invalid_empty_response"] for item in task_records
             ),
             "largest_responses": sorted(
                 task_records, key=lambda item: item["response_tokens"], reverse=True
@@ -97,6 +104,16 @@ def main():
     output = args.run_dir / "capability_output_audit.json"
     output.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({"output": str(output), "tasks": by_task}, indent=2))
+    invalid = [
+        item
+        for item in records
+        if item["invalid_empty_response"] or item["suspected_length_limited"]
+    ]
+    if invalid:
+        raise SystemExit(
+            "Capability audit found empty or generation-limited responses; "
+            "recover them before treating capability scores as final"
+        )
 
 
 if __name__ == "__main__":
