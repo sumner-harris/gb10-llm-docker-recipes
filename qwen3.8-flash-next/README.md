@@ -18,22 +18,45 @@ required part of this exact recipe, not optional tuning files.
 
 ## Download and launch
 
-Keep the checkpoint on local NVMe; random PLE reads over a network filesystem
-will severely reduce performance. With the Hugging Face CLI installed:
+`launch.sh` does **not** download the checkpoint. It deliberately starts vLLM
+in Hugging Face and Transformers offline mode and bind-mounts an existing local
+checkpoint into the container. Keep the complete checkpoint on local NVMe;
+random PLE reads over a network filesystem will severely reduce performance.
+
+Install the Hugging Face CLI on the Docker host (a virtual environment is
+optional):
 
 ```bash
-export HF_TOKEN='hf_...'
+python3 -m pip install --upgrade "huggingface_hub[cli]"
+hf auth login
+```
+
+Download the exact checkpoint revision used by this recipe. The command
+downloads the model weights, tokenizer/configuration files, and the PLE data;
+it can be rerun to resume an interrupted download:
+
+```bash
 MODEL_DIR="$HOME/hf_cache/Qwen3.8-Flash-Next-NVFP4-nvidia"
 hf download nvidia/Qwen3.8-Flash-Next-NVFP4 \
   --revision fc694b54fb0174e0913e6adf86691ef85a4ead47 \
   --local-dir "$MODEL_DIR"
 ```
 
-Launch as a user with Docker access:
+Do not remove the `.cache/huggingface/download` metadata inside `MODEL_DIR`:
+the launcher uses it to verify that the local files came from the pinned model
+revision. Confirm that the download is present, then launch as a user with
+Docker access:
 
 ```bash
+test -f "$MODEL_DIR/config.json"
+du -sh "$MODEL_DIR"
 MODEL_DIR="$HOME/hf_cache/Qwen3.8-Flash-Next-NVFP4-nvidia" ./launch.sh
 ```
+
+If the checkpoint is already present at another location, skip the download
+and set `MODEL_DIR` to that absolute directory. The launcher refuses to start
+when `config.json` is missing or the retained Hugging Face metadata identifies
+a revision other than the one pinned above.
 
 The OpenAI-compatible API listens on port `8000`. Override `PORT`,
 `CONTAINER_NAME`, `MODEL_DIR`, or `CACHE_DIR` as needed. `MTP=2` is the
