@@ -6,6 +6,12 @@ GB10 systems such as DGX Spark and HP ZGX Nano.
 Each recipe pins both the serving image and model checkpoint. Secrets are never
 stored in the repository; gated models read `HF_TOKEN` from the environment.
 
+## Benchmark tools
+
+- [OpenAI-compatible capability and throughput suite](benchmark-tools/openai-compatible-suite/)
+  runs AIME 2025, IFEval, and calibrated fixed-token performance workloads
+  against an already-running vLLM server.
+
 ## Recipes
 
 | Model | Runtime | API port | Notes |
