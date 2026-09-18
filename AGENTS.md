@@ -1,4 +1,4 @@
-# Agent guide: reproducible throughput benchmarks
+# Agent guide: reproducible benchmark publication
 
 This file applies to the entire repository. Use it whenever adding or updating
 a model recipe, running a throughput comparison, or publishing benchmark
@@ -7,8 +7,32 @@ produce the same class of report without relying on chat history.
 
 The canonical published examples are:
 
+- `qwen3.8-flash-next/benchmarks/2026-09-12-mtp-sweep/`
 - `mistral-small-4-119b-nvfp4/benchmarks/2026-09-17-eagle-comparison/`
 - `nemotron-3-super-120b-nvfp4/benchmarks/2026-09-17-mtp-comparison/`
+
+## Required reporting workflow for agents
+
+Before publishing, classify the run as exactly one of:
+
+- `speculative_comparison`: the same model/workload includes a no-speculation
+  baseline and one or more speculative variants.
+- `speculative_parameter_sweep`: only speculative settings are compared. Never
+  call a parameter sweep a speedup or uplift measurement.
+- `capability`: task accuracy or instruction-following scores, separated by an
+  explicitly captured reasoning mode.
+
+Use the standard artifact names below, keep full precision in CSV/JSON, round
+only Markdown/plot labels, and derive every prose claim and plot from the
+machine-readable rows. Reports must lead with status, scope, sample count,
+winner/selection, and the most important limitation in that order. Do not make
+readers infer whether a baseline exists, whether a result is capped, or whether
+the reasoning mode was implicit.
+
+Every model-local report belongs under `<model>/benchmarks/`. Add the report to
+the model README and add one compact row to the root README. Never put raw
+prompt/response text, private endpoints, credentials, or absolute host paths in
+a publication.
 
 ## Non-negotiable safety rules
 
@@ -60,8 +84,10 @@ workload contract is part of the result and must not be silently changed:
   `96765a32a67a83f07ddded74cfd5639a7c2afd1a1ff0f3c244b1cff0a9732f3b`.
 - Maximum output: 512 tokens.
 - Closed-loop concurrency levels: 1, 2, 4, and 6.
-- Reasoning efforts: all modes actually supported by the model. Nemotron uses
-  `none,low,medium,xhigh`; Mistral Small 4 uses `none,high`.
+- Reasoning efforts: all model-native modes actually supported by the model.
+  Qwen3.8-Flash-Next uses OFF, `low`, `medium`, and `xhigh`; Mistral Small 4
+  uses `none` and `high`; Nemotron-3 Super uses reasoning-off, low-effort
+  reasoning, and regular reasoning. Never copy one model's mode list to another.
 - Two excluded warmup batches before every concurrency level, using effort
   `none` and a 128-token output limit.
 - Keep recorded prompts exact; do not add nonce text unless the experiment is
@@ -88,7 +114,7 @@ python benchmark_speed_responses.py \
   nemotron-3-super-120b-nvfp4 http://127.0.0.1:8031/v1 \
   --run-label mtpv2_mtp3 \
   --dataset speed_bench_throughput_2k_selected.json \
-  --efforts none,low,medium,xhigh \
+  --efforts none,low,high \
   --concurrencies 1,2,4,6 \
   --repeats 3 \
   --warmup-batches 2 \
@@ -103,6 +129,25 @@ python benchmark_speed_responses.py \
 Use `--resume` only when the server configuration and dataset are unchanged.
 Do not combine cells produced by different image digests, checkpoint revisions,
 launch arguments, or workload files.
+
+## Reasoning-mode terminology and proof
+
+Show a friendly model-native name and separately record the exact wire fields.
+The current canonical mappings are:
+
+| Model | Display mode | Required explicit controls |
+| --- | --- | --- |
+| Qwen3.8-Flash-Next | OFF | `reasoning_effort=none`, `enable_thinking=false`, `preserve_thinking=false` |
+| Qwen3.8-Flash-Next | low / medium / xhigh | matching `reasoning_effort`, `enable_thinking=true`, `preserve_thinking=false` |
+| Mistral Small 4 | none / high | matching explicit `reasoning_effort` |
+| Nemotron-3 Super | reasoning-off | `reasoning_effort=none`, `enable_thinking=false`, `low_effort=false` |
+| Nemotron-3 Super | low-effort reasoning | `reasoning_effort=low`, `enable_thinking=true`, `low_effort=true` |
+| Nemotron-3 Super | regular reasoning | transport alias `reasoning_effort=high`, `enable_thinking=true`, `low_effort=false` |
+
+Capture the exact outbound JSON for every capability sample and at least one
+auditable request for every performance cell. Do not infer the active mode from
+a server default or label. If exact outbound evidence is missing, label the run
+`reference-only` and keep it out of cross-model charts.
 
 ## Raw result contract
 
@@ -208,6 +253,40 @@ image before committing it.
 
 Link the dated report from the recipe's top-level `README.md`. Compact aggregate
 CSVs may also be published, but they do not replace the dated report above.
+
+For large parameter sweeps, the Markdown table may summarize one row per
+variant while `comparison_by_repeat.csv` retains every effort/concurrency cell.
+Use `benchmark_type=speculative_parameter_sweep`, make the lack of a baseline
+prominent, and set baseline-relative fields to null/blank rather than inventing
+a reference. Use the standard five plot names even when variants are on the
+x-axis and concurrency is the plotted series.
+
+## Capability publication and main-page chart
+
+Publish each capability mode under
+`<model>/benchmarks/YYYY-MM-DD-capability-<mode>/`. It must contain a README,
+structured task summary, retained sample/provenance files or hashes, generation
+and harness metadata, and model-local plots. Then append normalized rows to
+`benchmark-results/capability/scores.csv`.
+
+Required score-row fields are defined in that CSV header. Use 0–1 scores and
+canonical metric IDs (`aime25_accuracy`, `gpqa_diamond_accuracy`,
+`ifeval_prompt_strict`, and `ifeval_instruction_strict`). A chartable row must:
+
+1. have `result_status=PASS`;
+2. link to a model-local dated report;
+3. record the exact wire reasoning effort and friendly mode name;
+4. record sample counts, temperature, seed, generation cap, harness, and task
+   revision;
+5. have no missing, empty, placeholder, timed-out, or length-capped response.
+
+After validating the CSV, run
+`benchmark-tools/reporting/render_capability_chart.py`. The required output is
+the grouped vertical bar chart
+`benchmark-results/capability/capability-comparison.png`, embedded on the root
+README by replacing its `CAPABILITY_CHART` placeholder. Never plot provisional,
+reference-only, capped, or differently-versioned task results as if they were
+directly comparable.
 
 ## Validation before commit
 

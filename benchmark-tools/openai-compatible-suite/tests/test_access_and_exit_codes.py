@@ -139,6 +139,7 @@ class GPQAControlFlowTests(unittest.TestCase):
                     "RUN_DIR": str(run_dir),
                     "MODEL_ID": "test-model",
                     "EVAL_TASKS": "aime25",
+                    "REASONING_EFFORT": "none",
                 }
             )
             completed = subprocess.run(
@@ -155,17 +156,49 @@ class GPQAControlFlowTests(unittest.TestCase):
             invocation = (run_dir / "lm_eval_invocation.txt").read_text(encoding="utf-8")
             self.assertIn("timeout=21600", invocation)
             self.assertIn("max_gen_toks=130000", invocation)
+            self.assertIn("reasoning_effort=none", invocation)
+
+    def test_lm_eval_runner_rejects_implicit_reasoning_default(self):
+        with tempfile.TemporaryDirectory() as directory:
+            fixture = Path(directory)
+            scripts = fixture / "scripts"
+            run_dir = fixture / "results" / "test"
+            scripts.mkdir(parents=True)
+            run_dir.mkdir(parents=True)
+            runner = scripts / "run_lm_eval.sh"
+            runner.write_text(
+                (SUITE_DIR / "scripts" / "run_lm_eval.sh").read_text(encoding="utf-8"),
+                encoding="utf-8",
+            )
+            environment = os.environ.copy()
+            environment.pop("REASONING_EFFORT", None)
+            environment.update({"RUN_DIR": str(run_dir), "MODEL_ID": "test-model"})
+            completed = subprocess.run(
+                ["bash", str(runner)],
+                cwd=fixture,
+                env=environment,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            self.assertNotEqual(completed.returncode, 0)
+            self.assertIn("REASONING_EFFORT must be set explicitly", completed.stderr)
 
     def test_capability_and_performance_timeouts_are_separate(self):
         config = (SUITE_DIR / "config.env.example").read_text(encoding="utf-8")
         self.assertIn("EVAL_TIMEOUT=21600", config)
         self.assertIn("MAX_GEN_TOKS=130000", config)
         self.assertIn("PERF_TIMEOUT=3600", config)
+        self.assertIn("REASONING_EFFORT=none", config)
         performance_runner = (SUITE_DIR / "scripts" / "run_perf.py").read_text(
             encoding="utf-8"
         )
         self.assertIn('os.getenv("PERF_TIMEOUT", "3600")', performance_runner)
+        self.assertIn('"reasoning_effort": REASONING_EFFORT', performance_runner)
         self.assertNotIn('os.getenv("EVAL_TIMEOUT"', performance_runner)
+
+        probe = (SUITE_DIR / "scripts" / "probe_endpoint.py").read_text(encoding="utf-8")
+        self.assertIn('"reasoning_effort": REASONING_EFFORT', probe)
 
 
 if __name__ == "__main__":

@@ -12,6 +12,19 @@ import urllib.request
 BASE_URL = os.getenv("BASE_URL", "http://127.0.0.1:8000").rstrip("/")
 API_KEY = os.getenv("API_KEY", "EMPTY")
 REQUESTED_MODEL = os.getenv("MODEL_ID", "").strip()
+REASONING_EFFORT = os.getenv("REASONING_EFFORT", "").strip()
+
+if not REASONING_EFFORT:
+    print(
+        json.dumps(
+            {
+                "ok": False,
+                "error": "REASONING_EFFORT must be set explicitly; model/template defaults are not benchmark-valid.",
+            },
+            indent=2,
+        )
+    )
+    sys.exit(1)
 
 
 def request_json(path: str, payload=None, timeout=20):
@@ -64,6 +77,7 @@ try:
             "messages": [{"role": "user", "content": "Reply with exactly: BENCHMARK_READY"}],
             "temperature": 0,
             "max_tokens": 32,
+            "reasoning_effort": REASONING_EFFORT,
         },
         timeout=120,
     )
@@ -89,6 +103,7 @@ print(
             "ok": True,
             "base_url": BASE_URL,
             "model_id": model_id,
+            "reasoning_effort": REASONING_EFFORT,
             "advertised_models": model_ids,
             "models_latency_s": round(model_latency, 4),
             "completion_latency_s": round(completion_latency, 4),

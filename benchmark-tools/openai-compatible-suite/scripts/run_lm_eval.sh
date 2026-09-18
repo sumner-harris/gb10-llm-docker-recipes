@@ -11,6 +11,7 @@ if [[ -f config.env ]]; then
 fi
 
 : "${RUN_DIR:?RUN_DIR must identify the result directory}"
+: "${REASONING_EFFORT:?REASONING_EFFORT must be set explicitly; benchmark runs may not rely on a model/template default}"
 base_url="${BASE_URL:-http://127.0.0.1:8000}"
 api_key="${API_KEY:-EMPTY}"
 model_id="${MODEL_ID:-}"
@@ -64,7 +65,7 @@ for task in "${selected[@]}"; do
       --model_args "model=${model_id},base_url=${chat_url},api_key=${api_key},tokenized_requests=False,num_concurrent=${EVAL_CONCURRENCY:-4},max_retries=3,timeout=${EVAL_TIMEOUT:-21600},think_end_token=</think>" \
       --tasks "$task" \
       --apply_chat_template \
-      --gen_kwargs "temperature=0,max_gen_toks=${MAX_GEN_TOKS:-130000}" \
+      --gen_kwargs "temperature=0,max_gen_toks=${MAX_GEN_TOKS:-130000},reasoning_effort=${REASONING_EFFORT}" \
       --log_samples \
       --output_path "$output"; then
     printf 'PASS %s\n' "$task" | tee -a "$RUN_DIR/lm_eval_status.txt"
