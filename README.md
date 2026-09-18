@@ -43,6 +43,6 @@ first complete comparable matrix passes the publication checks in AGENTS.md. -->
 
 | Model | Runtime | API port | Notes |
 | --- | --- | ---: | --- |
-| [Qwen3.8-Flash-Next](qwen3.8-flash-next/) | vLLM 0.28.1 development build | 8000 | MTP sweep selected 2 draft tokens |
+| [Qwen3.8-Flash-Next](qwen3.8-flash-next/) | Pinned vLLM nightly | 8000 | MTP2 with staged disk-backed PLE and bundled overlays |
 | [Mistral Small 4 119B NVFP4](mistral-small-4-119b-nvfp4/) | vLLM 0.28.0 | 8021 | Validated without speculative decoding/EAGLE |
 | [Nemotron-3 Super 120B NVFP4](nemotron-3-super-120b-nvfp4/) | vLLM 0.28.0 | 8031 | MTPv2 with 3 speculative tokens |
