@@ -61,10 +61,10 @@ for task in "${selected[@]}"; do
   printf 'Running one deterministic capability pass: %s\n' "$task"
   if .venv/bin/lm-eval run \
       --model local-chat-completions \
-      --model_args "model=${model_id},base_url=${chat_url},api_key=${api_key},tokenized_requests=False,num_concurrent=${EVAL_CONCURRENCY:-4},max_retries=3,timeout=${EVAL_TIMEOUT:-10800},think_end_token=</think>" \
+      --model_args "model=${model_id},base_url=${chat_url},api_key=${api_key},tokenized_requests=False,num_concurrent=${EVAL_CONCURRENCY:-4},max_retries=3,timeout=${EVAL_TIMEOUT:-21600},think_end_token=</think>" \
       --tasks "$task" \
       --apply_chat_template \
-      --gen_kwargs "temperature=0,max_gen_toks=${MAX_GEN_TOKS:-65536}" \
+      --gen_kwargs "temperature=0,max_gen_toks=${MAX_GEN_TOKS:-120000}" \
       --log_samples \
       --output_path "$output"; then
     printf 'PASS %s\n' "$task" | tee -a "$RUN_DIR/lm_eval_status.txt"

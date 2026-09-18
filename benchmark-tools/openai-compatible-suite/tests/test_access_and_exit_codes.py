@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Regression tests for gated access and shell exit-code handling."""
 
+import importlib.util
 import json
 import os
 import runpy
@@ -17,6 +18,16 @@ SUITE_DIR = Path(__file__).resolve().parents[1]
 
 
 class GPQAControlFlowTests(unittest.TestCase):
+    def test_capability_audit_treats_null_and_empty_lists_as_empty(self):
+        script = SUITE_DIR / "scripts" / "audit_capability_outputs.py"
+        spec = importlib.util.spec_from_file_location("capability_audit", script)
+        module = importlib.util.module_from_spec(spec)
+        with patch.dict(sys.modules, {"httpx": types.ModuleType("httpx")}):
+            spec.loader.exec_module(module)
+        self.assertEqual(module.response_text({"resps": [[None]]}), "")
+        self.assertEqual(module.response_text({"resps": []}), "")
+        self.assertEqual(module.response_text({"resps": [["answer"]]}), "answer")
+
     def test_builder_denial_is_blocked_when_repository_metadata_is_public(self):
         class DatasetNotFoundError(Exception):
             pass
@@ -142,12 +153,13 @@ class GPQAControlFlowTests(unittest.TestCase):
             status = (run_dir / "lm_eval_status.txt").read_text(encoding="utf-8")
             self.assertIn("FAIL aime25", status)
             invocation = (run_dir / "lm_eval_invocation.txt").read_text(encoding="utf-8")
-            self.assertIn("timeout=10800", invocation)
-            self.assertIn("max_gen_toks=65536", invocation)
+            self.assertIn("timeout=21600", invocation)
+            self.assertIn("max_gen_toks=120000", invocation)
 
     def test_capability_and_performance_timeouts_are_separate(self):
         config = (SUITE_DIR / "config.env.example").read_text(encoding="utf-8")
-        self.assertIn("EVAL_TIMEOUT=10800", config)
+        self.assertIn("EVAL_TIMEOUT=21600", config)
+        self.assertIn("MAX_GEN_TOKS=120000", config)
         self.assertIn("PERF_TIMEOUT=3600", config)
         performance_runner = (SUITE_DIR / "scripts" / "run_perf.py").read_text(
             encoding="utf-8"

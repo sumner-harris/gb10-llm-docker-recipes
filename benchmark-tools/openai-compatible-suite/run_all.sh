@@ -22,7 +22,9 @@ fi
 if ! bash scripts/run_gpqa.sh; then
   capability_failed=1
 fi
-bash scripts/postprocess_capability.sh
+if ! bash scripts/postprocess_capability.sh; then
+  capability_failed=1
+fi
 .venv/bin/python scripts/run_perf.py
 
 printf 'Completed artifacts are in %s\n' "$RUN_DIR"

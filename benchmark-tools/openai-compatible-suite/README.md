@@ -13,10 +13,10 @@ Capability scoring is sequential by task and is **not** a concurrency sweep:
 - GPQA Diamond through the official lm-eval task
   `gpqa_diamond_cot_zeroshot` (deterministic `generate_until`/chain-of-thought)
   and the gated `Idavidrein/gpqa` dataset.
-- One deterministic pass (`temperature=0`) with a 65,536-token generation
-  ceiling and a 10,800-second (three-hour) per-request timeout.
-- Raw lm-eval samples and a post-run token-count audit that flags likely
-  generation-limit hits.
+- One deterministic pass (`temperature=0`) with a 120,000-token generation
+  ceiling and a 21,600-second (six-hour) per-request timeout.
+- Raw lm-eval samples and a strict post-run token-count audit that rejects
+  empty responses and likely generation-limit hits until they are recovered.
 
 `EVAL_CONCURRENCY=4` lets lm-eval submit four independent examples at once to
 reduce wall time. It does not duplicate samples, change the task, or produce
@@ -24,7 +24,7 @@ scores at several concurrency levels. Set it to `1` if the server cannot batch
 requests reliably; use the same value for every model in a comparison.
 
 The long capability timeout is intentional: reasoning models can produce valid
-65K-budget generations that take more than one hour. A shorter client timeout
+120K-budget generations that take several hours. A shorter client timeout
 would cancel and effectively truncate those samples even though the server is
 still generating. `EVAL_TIMEOUT` remains configurable, but comparisons should
 use the same value and report any client timeout. Performance requests use the
@@ -80,8 +80,9 @@ keys outside version control; `config.env` and `results/` are ignored.
 Before comparing models, hold constant the checkpoint revision, chat template,
 reasoning mode, quantization, vLLM version and flags, KV-cache dtype,
 speculative decoding, context limit, and hardware power/clock policy. A
-65,536-token client ceiling cannot override a smaller server context window;
-verify the server can accommodate the workload.
+120,000-token client ceiling cannot override a smaller server context window.
+The default assumes at least a 131,072-token server context and short benchmark
+prompts; verify prompt plus output fits before comparing models.
 
 ## Run or resume
 
@@ -137,7 +138,11 @@ results/<run>/
     cells/<scenario>_c<N>.json      # atomic resume checkpoints
 ```
 
-Treat length-limited capability answers as incomplete and report their count.
+Treat empty or length-limited capability answers as incomplete. The suite exits
+nonzero when the audit finds either condition; recover those prompts at a safe
+ceiling before treating the aggregate score as final. Some reasoning endpoints
+return a null `message.content` with text only in a provider-specific reasoning
+field, so inspect the raw API response rather than scoring an empty placeholder.
 The AIME rescore accommodates common `Answer: N` and `\\boxed{N}` endings; use
 this same scorer for every compared model and retain lm-eval's stock metric for
 provenance. Fixed-output performance cells should have 24 successes, 24 exact
