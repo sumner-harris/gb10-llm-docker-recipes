@@ -79,6 +79,10 @@ up before measurement.
 
 ![Throughput by reasoning effort and concurrency](benchmark-results/throughput_by_effort_and_concurrency.png)
 
+The dated report now uses the repository-wide publication schema. Its
+historical reasoning labels are retained for provenance but are not eligible
+for the explicit-mode capability comparison chart.
+
 ## Validated configuration
 
 - One NVIDIA GB10 GPU with 128 GB unified memory

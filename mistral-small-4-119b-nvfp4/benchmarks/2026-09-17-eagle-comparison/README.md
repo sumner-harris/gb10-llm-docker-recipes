@@ -1,8 +1,29 @@
 # Mistral Small 4 119B NVFP4 speculative-decoding benchmark
 
-All values are medians across three measured ten-prompt repeats. Each deployment contains 240 successful measured requests: 30 for every supported reasoning/load combination. The full comparison contains 720 successful measured requests.
+**Status: complete speculative comparison.** The report contains 72 measured
+cells and 720 successful requests: baseline, EAGLE-1, and EAGLE-3 across two
+reasoning modes, four concurrency levels, and three repeats. All values in the
+detailed table are medians across the three ten-prompt repeats.
 
-## Summary plots
+## Result
+
+The non-speculative baseline won every tested effort/load cell. Across all 24
+per-repeat rows per deployment, it averaged 54.59 system output tokens/s;
+EAGLE-1 averaged 31.07 (-43.1%) and EAGLE-3 averaged 29.19 (-46.5%). The
+official EAGLE head works, but its verification overhead did not pay back on
+this single-GB10 NVFP4 deployment.
+
+| Configuration | Measured requests | Mean output tok/s | vs baseline | Weighted acceptance | Mean accepted length |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Baseline (no speculation) | 240 | 54.59 | +0.0% | — | — |
+| Official EAGLE, 1 draft token | 240 | 31.07 | -43.1% | 66.3% | 1.66 |
+| Official EAGLE, 3 draft tokens | 240 | 29.19 | -46.5% | 34.5% | 2.03 |
+
+Machine-readable results: [summary CSV](comparison_summary.csv),
+[per-repeat CSV](comparison_by_repeat.csv), and
+[structured JSON](comparison_report.json).
+
+## Uniform plots
 
 ### Output throughput
 
@@ -23,10 +44,6 @@ All values are medians across three measured ten-prompt repeats. Each deployment
 ### Reasoning-token share
 
 ![Reasoning-token share by deployment and concurrency](reasoning_share_comparison.png)
-
-Machine-readable results: [summary CSV](comparison_summary.csv),
-[per-repeat CSV](comparison_by_repeat.csv), and
-[structured JSON](comparison_report.json).
 
 ## Detailed results
 
@@ -57,7 +74,7 @@ Machine-readable results: [summary CSV](comparison_summary.csv),
 | high | Official EAGLE, 3 draft tokens | 4 | 34.41 | -48.1% | 0.994s | 44.012s | 20.0% | 96.1% | 36.4% |
 | high | Official EAGLE, 3 draft tokens | 6 | 36.59 | -50.7% | 1.357s | 56.569s | 10.0% | 98.8% | 34.7% |
 
-## Result
+## Interpretation and limitations
 
 The original non-speculative deployment is the clear winner at every tested load. At reasoning effort `none`, EAGLE-1 loses 25.7% to 49.5% throughput and the documented EAGLE-3 setting loses 35.8% to 51.0%. At `high`, EAGLE-1 loses 23.5% to 50.1% and EAGLE-3 loses 32.7% to 50.7%. The official EAGLE head is functional, but its draft/verification overhead does not pay back on this single-GB10 NVFP4 deployment.
 
@@ -65,11 +82,17 @@ The original non-speculative deployment is the clear winner at every tested load
 
 EAGLE-3 also developed Responses-API stream timeouts after sustained concurrent use. The final invalid cell was quarantined and repeated successfully after a clean server restart; quarantined attempts remain in the result tree for auditability. The subsequent full `high` matrix completed without a failed measured request.
 
-## Workload
+This historical throughput report records explicit `none` and `high` labels,
+but predates the current per-request outbound-payload capture contract. It is
+therefore not a source for the capability-score chart. The EAGLE compatibility
+image was also a local derived image rather than a registry-pinned artifact.
+These limitations do not change the measured within-matrix throughput result.
+
+## Workload and reasoning modes
 
 Ten fixed prompts per repeat: nine deterministically selected NVIDIA SPEED-Bench throughput_2k prompts plus the exact user story prompt. Maximum output was 512 tokens, reasoning effort was explicitly `none` or `high`, and each concurrency used two excluded warmup batches. Mistral Small 4's chat template supports these two reasoning modes; it does not define intermediate `low` or `medium` modes.
 
-## Method selection
+## Deployment variants
 
 Mistral publishes an official EAGLE head for this exact target model, `mistralai/Mistral-Small-4-119B-2603-eagle`, and documents three speculative tokens. No native MTP checkpoint is published for Mistral Small 4. The vLLM speculators catalog also lists third-party DFlash and DSpark heads, but those are separate 2B BF16 speculators and were not mixed into this official-head comparison.
 

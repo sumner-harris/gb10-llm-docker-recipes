@@ -7,6 +7,10 @@ Markdown summarize those same rows.
 Install the plotting dependencies with
 `python -m pip install -r benchmark-tools/reporting/requirements.txt`.
 
+Every structured report uses `schema_version`, `benchmark_type`, `status`,
+`model`, `hardware`, `runtime`, `workload`, `selection_rule`, `limitations`,
+`summary_rows`, and `per_repeat_rows` as its common top-level contract.
+
 ## Speculative decoding
 
 `build_qwen_mtp_report.py` converts the retained Qwen MTP 1–10 cell tree into
@@ -23,6 +27,10 @@ For new benchmarks, follow `AGENTS.md`. Comparison reports and parameter sweeps
 use the same filenames and metric names. A parameter sweep must set
 `benchmark_type=speculative_parameter_sweep` and must not report speedup unless
 an MTP-off baseline was measured in the same workload matrix.
+
+`normalize_speculative_reports.py` rebuilds the Mistral and Nemotron structured
+reports in the same top-level schema and replaces private absolute source paths
+with sanitized retained-result provenance. It does not alter measured values.
 
 ## Capability chart
 
