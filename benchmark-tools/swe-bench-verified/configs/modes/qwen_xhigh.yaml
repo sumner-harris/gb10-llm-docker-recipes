@@ -1,0 +1,19 @@
+agent:
+  model:
+    name: openai/qwen3.8-flash-next
+    api_key: $VLLM_API_KEY
+    per_instance_cost_limit: 0
+    total_cost_limit: 0
+    per_instance_call_limit: 100
+    temperature: 0
+    top_p: 1
+    max_input_tokens: 0
+    max_output_tokens: 65536
+    completion_kwargs:
+      max_tokens: 65536
+      seed: 1234
+      reasoning_effort: xhigh
+      extra_body:
+        chat_template_kwargs:
+          enable_thinking: true
+          preserve_thinking: false

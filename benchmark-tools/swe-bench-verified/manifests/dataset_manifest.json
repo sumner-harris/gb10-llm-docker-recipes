@@ -1,0 +1,9 @@
+{
+  "dataset": "SWE-bench/SWE-bench_Verified",
+  "dataset_fingerprint": "ae0d64ac4f2299b6",
+  "instance_ids_sha256": "a6b0fd7c8c2969a0eef892e032250adcfa6d32362d395c246930e61b575ac9b9",
+  "revision": "78f471bf655a3137b2e8a75af1501690ec009ec3",
+  "rows": 500,
+  "split": "test",
+  "unique_instance_ids": 500
+}

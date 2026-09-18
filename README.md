@@ -13,6 +13,9 @@ stored in the repository; gated models read `HF_TOKEN` from the environment.
   against an already-running vLLM server.
 - [Uniform benchmark reporting tools](benchmark-tools/reporting/) build the
   standard speculative-decoding reports and the capability comparison chart.
+- [SWE-bench Verified agent and official evaluator](benchmark-tools/swe-bench-verified/)
+  provide a pinned, guarded 500-task coding-agent campaign for every explicit
+  reasoning mode without queuing or starting a run during setup.
 
 ## Speculative-decoding results
 
