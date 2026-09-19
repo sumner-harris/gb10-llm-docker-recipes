@@ -56,7 +56,11 @@ def main() -> None:
     assert common["instances"]["split"] == "test"
     assert common["instances"]["evaluate"] is False
     assert common["num_workers"] == 1
-    assert "--network=none" in common["instances"]["deployment"]["docker_args"]
+    # SWE-ReX controls the task container through a published localhost port.
+    # Docker's network=none makes that control plane unreachable.
+    assert "--network=none" not in common["instances"]["deployment"].get(
+        "docker_args", []
+    )
 
     for mode, (model_name, effort) in EXPECTED_MODES.items():
         config = YAML_LOADER.load(ROOT / "configs" / "modes" / f"{mode}.yaml")

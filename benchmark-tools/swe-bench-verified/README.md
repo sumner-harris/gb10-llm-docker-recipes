@@ -40,6 +40,12 @@ The model endpoints may remain on the GB10 systems; only the agent/task Docker
 environment and final grading need the x86-64 worker to be able to reach those
 endpoints.
 
+SWE-agent's SWE-ReX runtime controls each task container through a published
+localhost port, so the agent container must retain Docker's normal bridge
+network. Do not add `--network=none`: it prevents the control plane from
+starting. The pinned official evaluator still creates and manages its own
+grading containers in the standard SWE-bench harness.
+
 ## Prepared modes
 
 | Config | Model-native mode | Explicit controls |

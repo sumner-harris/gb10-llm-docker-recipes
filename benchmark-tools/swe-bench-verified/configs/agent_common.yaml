@@ -14,8 +14,6 @@ instances:
   deployment:
     type: docker
     image: python:3.11
-    docker_args:
-      - --network=none
     remove_container: true
 
 num_workers: 1
