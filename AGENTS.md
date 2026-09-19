@@ -288,6 +288,34 @@ README by replacing its `CAPABILITY_CHART` placeholder. Never plot provisional,
 reference-only, capped, or differently-versioned task results as if they were
 directly comparable.
 
+## SWE-bench Verified agent evaluation
+
+Use [`benchmark-tools/swe-bench-verified/`](benchmark-tools/swe-bench-verified/)
+for repository-level coding-agent evaluation. Do not substitute SWE-bench Lite,
+the unfiltered full dataset, a custom grader, or an unpinned dataset snapshot
+while labeling the result SWE-bench Verified.
+
+The standard campaign contract is the complete 500-instance Verified `test`
+split, pass@1, official SWE-agent prompt/tools, and the official SWE-bench
+Docker evaluator. Run the agent/task environments and grader on x86-64 Linux;
+ARM64 support is experimental and must not be mixed into a scored comparison.
+Disable network access inside task containers so the agent cannot retrieve the
+original solution. Keep the model endpoint reachable from the agent host.
+
+Use the same agent commit, evaluator commit, dataset revision, prompt, tool
+set, 100-call limit, sampling parameters, and container policy for every model
+and reasoning mode. Send the mode's explicit reasoning fields on every model
+call. A one-task smoke test validates compatibility only and never contributes
+to the score. Do not start another capability or performance workload against
+the same endpoint while a SWE-agent trajectory is active.
+
+Retain the resolved configuration, complete trajectories, `preds.json`,
+converted prediction JSONL, per-instance evaluator logs, and final report.
+Every changed prediction set requires a new evaluator `run_id`, because the
+official harness caches by instance and run ID rather than patch content.
+Report attempted, completed, patch-applied, resolved, infrastructure-failure,
+and unresolved counts, plus `resolved / 500`; never silently drop failures.
+
 ## Validation before commit
 
 Complete every check below:

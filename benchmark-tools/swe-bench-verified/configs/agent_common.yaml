@@ -1,0 +1,22 @@
+agent:
+  # The official default uses Anthropic-style cache-control message blocks.
+  # Official SWE-agent documentation says to remove this processor for local
+  # OpenAI-compatible models that do not need it.
+  history_processors: []
+  max_requeries: 3
+
+instances:
+  type: swe_bench
+  subset: verified
+  split: test
+  shuffle: false
+  evaluate: false
+  deployment:
+    type: docker
+    image: python:3.11
+    remove_container: true
+
+num_workers: 1
+random_delay_multiplier: 0
+raise_exceptions: false
+redo_existing: false
