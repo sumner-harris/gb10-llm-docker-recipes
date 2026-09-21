@@ -50,5 +50,16 @@ task_status=$?
 if [[ "$task_status" -ne 0 ]]; then
   printf 'FAIL %s: lm-eval exited with status %s\n' "$task" "$task_status" \
     | tee -a "$RUN_DIR/lm_eval_status.txt" >&2
+  exit "$task_status"
 fi
-exit "$task_status"
+
+# Retain lm-eval's native metric, but report GPQA with the explicit-final-answer
+# AA-compatible extractor to avoid the last-parenthesized-letter failure mode.
+.venv/bin/python scripts/score_gpqa_robust.py "$RUN_DIR"
+score_status=$?
+if [[ "$score_status" -ne 0 ]]; then
+  printf 'FAIL %s: robust GPQA scoring exited with status %s\n' "$task" "$score_status" \
+    | tee -a "$RUN_DIR/lm_eval_status.txt" >&2
+  exit "$score_status"
+fi
+exit 0
