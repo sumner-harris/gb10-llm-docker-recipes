@@ -29,3 +29,15 @@ if find "$RUN_DIR/lm_eval" -type f -name 'samples_*.jsonl' -print -quit 2>/dev/n
 else
   printf 'No capability samples found; skipping output-length audit.\n' >&2
 fi
+
+# Recompute after the strict audit so capped/null/empty GPQA outputs are forced
+# incorrect in the primary score even when their text happens to contain A-D.
+mapfile -t gpqa_samples < <(find "$RUN_DIR/lm_eval" -type f -name 'samples_gpqa_diamond_cot_zeroshot_*.jsonl' 2>/dev/null | sort)
+if [[ ${#gpqa_samples[@]} -eq 1 ]]; then
+  .venv/bin/python scripts/score_gpqa_robust.py "$RUN_DIR" >/dev/null
+  printf 'Wrote %s\n' "$RUN_DIR/gpqa_score_robust_aa_v1.json"
+elif [[ ${#gpqa_samples[@]} -gt 1 ]]; then
+  printf 'Expected one GPQA sample file but found %s; refusing an ambiguous rescore.\n' \
+    "${#gpqa_samples[@]}" >&2
+  exit 6
+fi
