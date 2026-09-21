@@ -138,7 +138,16 @@ def score_run(run_dir: Path) -> dict[str, Any]:
         methods[extraction["method"]] = methods.get(extraction["method"], 0) + 1
         evidence.append({"doc_id": doc_id, "gold": gold, "extracted": answer, "method": extraction["method"], "candidates_in_selected_tier": extraction["candidates"], "selected_match": extraction["match"], "invalid_output_forced_incorrect": is_invalid, "correct": is_correct, "response_sha256": hashlib.sha256(response.encode("utf-8")).hexdigest()})
     total = len(samples)
-    return {"schema_version": 1, "scorer_version": SCORER_VERSION, "generated_at_utc": datetime.now(timezone.utc).isoformat(), "task": TASK, "metric": "gpqa_diamond_accuracy_aa_compatible_v1", "score": correct / total, "correct": correct, "total": total, "extracted": extracted, "missing_extraction": total - extracted, "method_counts": methods, "invalid_outputs_scored_incorrect": sorted(invalid_doc_ids), "integrity": integrity, "source_samples": {"file": sample_path.name, "sha256": sha256_file(sample_path)}, "native_lm_eval": native, "per_doc": evidence, "extraction_policy": {"basis": "Artificial Analysis published GPQA extraction order, restricted to A-D", "selection": "first matching tier; last match within that tier", "priority": ["single_letter", "answer_colon"] + [name for name, _ in FALLBACKS], "invalid_output_policy": "strict-audit capped/null/empty outputs are scored incorrect without retry"}, "reporting_status": "PRIMARY_CORRECTED_ROBUST"}
+    gate = integrity.get("gate")
+    if integrity["status"] != "AVAILABLE":
+        reporting_status = "VENDOR_EXTRA_AUDIT_NOT_AVAILABLE"
+    elif gate == "PASS":
+        reporting_status = "FINAL_REPORTABLE"
+    elif gate == "COMPLETE_WITH_INVALID_OUTPUTS":
+        reporting_status = "REPORTABLE_WITH_INVALID_OUTPUTS_SCORED_INCORRECT"
+    else:
+        reporting_status = "QUALIFIED_NONFINAL_INTEGRITY_GATE"
+    return {"schema_version": 1, "scorer_version": SCORER_VERSION, "generated_at_utc": datetime.now(timezone.utc).isoformat(), "task": TASK, "metric": "gpqa_diamond_accuracy_aa_compatible_v1", "score": correct / total, "correct": correct, "total": total, "extracted": extracted, "missing_extraction": total - extracted, "method_counts": methods, "invalid_outputs_scored_incorrect": sorted(invalid_doc_ids), "integrity": integrity, "source_samples": {"file": sample_path.name, "sha256": sha256_file(sample_path)}, "native_lm_eval": native, "per_doc": evidence, "extraction_policy": {"basis": "Artificial Analysis published GPQA extraction order, restricted to A-D", "selection": "first matching tier; last match within that tier", "priority": ["single_letter", "answer_colon"] + [name for name, _ in FALLBACKS], "invalid_output_policy": "strict-audit capped/null/empty outputs are scored incorrect without retry"}, "reporting_status": reporting_status}
 
 
 def main() -> int:
@@ -154,7 +163,7 @@ def main() -> int:
     primary_path = run_dir / "gpqa_score_primary.json"
     native_path.write_text(json.dumps(native, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     robust_path.write_text(json.dumps(corrected, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    primary = {"primary_metric": corrected["metric"], "primary_artifact": robust_path.name, "score": corrected["score"], "correct": corrected["correct"], "total": corrected["total"], "harness_native_metric_retained": native["metric"], "harness_native_artifact": native_path.name, "harness_native_score": native["score"], "scorer_version": SCORER_VERSION}
+    primary = {"primary_metric": corrected["metric"], "primary_artifact": robust_path.name, "score": corrected["score"], "correct": corrected["correct"], "total": corrected["total"], "reporting_status": corrected["reporting_status"], "harness_native_metric_retained": native["metric"], "harness_native_artifact": native_path.name, "harness_native_score": native["score"], "scorer_version": SCORER_VERSION}
     primary_path.write_text(json.dumps(primary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(json.dumps(primary, sort_keys=True))
     return 0
