@@ -8,10 +8,15 @@ readonly IMAGE='vllm/vllm-openai@sha256:f8fe15a8039343336945db10494eaad80ef941fe
 readonly MODEL='openai/gpt-oss-120b'
 readonly MODEL_REVISION='b5c939de8f754692c1647ca79fbf85e8c1e70f8a'
 readonly SERVED_MODEL_NAME='gpt-oss-120b-mxfp4'
+readonly O200K_URL='https://openaipublic.blob.core.windows.net/encodings/o200k_base.tiktoken'
+readonly O200K_SHA256='446a9538cb6c348e3516120d7c08b09f57c36495e2acfffe59a5bf8b0cfb1a2d'
+readonly CL100K_URL='https://openaipublic.blob.core.windows.net/encodings/cl100k_base.tiktoken'
+readonly CL100K_SHA256='223921b76ee99bde995b7ff738513eef100fb51d18c93597a113bcffe865b2a7'
 
 CONTAINER_NAME="${CONTAINER_NAME:-vllm-gpt-oss-120b-mxfp4}"
 PORT="${PORT:-8041}"
 HF_CACHE="${HF_CACHE:-$HOME/hf_cache}"
+TIKTOKEN_CACHE="${TIKTOKEN_CACHE:-$HF_CACHE/tiktoken_encodings}"
 GPU_MEMORY_UTILIZATION="${GPU_MEMORY_UTILIZATION:-0.80}"
 MAX_MODEL_LEN="${MAX_MODEL_LEN:-131072}"
 MAX_NUM_BATCHED_TOKENS="${MAX_NUM_BATCHED_TOKENS:-8192}"
@@ -51,9 +56,47 @@ if docker container inspect "$CONTAINER_NAME" >/dev/null 2>&1; then
   exit 1
 fi
 
-mkdir -p "$HF_CACHE"
+mkdir -p "$HF_CACHE" "$TIKTOKEN_CACHE"
 
-docker_env_args=(--env 'HF_HOME=/root/.cache/huggingface')
+download_encoding() {
+  local filename="$1"
+  local url="$2"
+  local expected_sha256="$3"
+  local destination="$TIKTOKEN_CACHE/$filename"
+  local temporary="${destination}.tmp.$$"
+
+  if [[ -f "$destination" ]] && printf '%s  %s\n' "$expected_sha256" "$destination" | sha256sum --check --status; then
+    return
+  fi
+
+  rm -f "$temporary"
+  if command -v curl >/dev/null 2>&1; then
+    curl --fail --location --retry 3 --output "$temporary" "$url"
+  elif command -v wget >/dev/null 2>&1; then
+    wget --tries=3 --output-document="$temporary" "$url"
+  else
+    echo 'curl or wget is required to download the GPT-OSS tiktoken encodings.' >&2
+    exit 1
+  fi
+
+  if ! printf '%s  %s\n' "$expected_sha256" "$temporary" | sha256sum --check --status; then
+    rm -f "$temporary"
+    echo "SHA-256 verification failed for $filename." >&2
+    exit 1
+  fi
+  mv -f "$temporary" "$destination"
+}
+
+# openai-harmony loads these vocabularies when the first generation request is
+# rendered. Pre-fetching them avoids a healthy-looking server that later returns
+# HTTP 500 when the container cannot reach the public encoding store.
+download_encoding 'o200k_base.tiktoken' "$O200K_URL" "$O200K_SHA256"
+download_encoding 'cl100k_base.tiktoken' "$CL100K_URL" "$CL100K_SHA256"
+
+docker_env_args=(
+  --env 'HF_HOME=/root/.cache/huggingface'
+  --env 'TIKTOKEN_ENCODINGS_BASE=/root/.cache/tiktoken_encodings'
+)
 if [[ -n "${HF_TOKEN:-}" ]]; then
   export HUGGING_FACE_HUB_TOKEN="${HUGGING_FACE_HUB_TOKEN:-$HF_TOKEN}"
   docker_env_args+=(--env HF_TOKEN --env HUGGING_FACE_HUB_TOKEN)
@@ -69,6 +112,7 @@ docker run --detach \
   --ipc host \
   --publish "${PORT}:8041" \
   --volume "${HF_CACHE}:/root/.cache/huggingface" \
+  --volume "${TIKTOKEN_CACHE}:/root/.cache/tiktoken_encodings:ro" \
   "${docker_env_args[@]}" \
   "$IMAGE" \
   "$MODEL" \

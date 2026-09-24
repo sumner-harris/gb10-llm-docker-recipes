@@ -28,7 +28,7 @@ chmod +x launch.sh                 # needed if your copy lost the Git executable
 If the host requires `sudo`, retain any overrides explicitly:
 
 ```bash
-sudo --preserve-env=HF_TOKEN,HUGGING_FACE_HUB_TOKEN,HF_CACHE,PORT,CONTAINER_NAME,GPU_MEMORY_UTILIZATION,MAX_MODEL_LEN,MAX_NUM_BATCHED_TOKENS,MAX_NUM_SEQS \
+sudo --preserve-env=HF_TOKEN,HUGGING_FACE_HUB_TOKEN,HF_CACHE,TIKTOKEN_CACHE,PORT,CONTAINER_NAME,GPU_MEMORY_UTILIZATION,MAX_MODEL_LEN,MAX_NUM_BATCHED_TOKENS,MAX_NUM_SEQS \
   ./launch.sh
 ```
 
@@ -40,7 +40,10 @@ PORT=9000 MAX_MODEL_LEN=32768 MAX_NUM_SEQS=4 ./launch.sh
 ```
 
 The first cold start downloads roughly 63 GB of model weights and can take
-several minutes. Follow startup and wait for the API, not just the container:
+several minutes. The launcher also downloads the `o200k_base` and `cl100k_base`
+tiktoken encoding files from OpenAI's public encoding store, verifies their
+SHA-256 hashes, and mounts them read-only for `openai-harmony`. Follow startup
+and wait for the API, not just the container:
 
 ```bash
 docker logs --follow vllm-gpt-oss-120b-mxfp4
@@ -77,6 +80,9 @@ are enabled with vLLM's `openai` tool parser.
 - The launcher does not set `VLLM_USE_FLASHINFER_MOE_MXFP4_MXFP8`. Upstream
   enables that optimization only for compute capability 10.0; GB10 reports
   12.1, so vLLM 0.28 is allowed to choose its SM121-compatible backend.
+- The Harmony vocabulary files are cached outside the container. This prevents
+  the first generation request from failing when the container has no outbound
+  access to OpenAI's encoding store.
 
 If startup is killed for memory pressure, first retry with a shorter context
 and lower memory target:
