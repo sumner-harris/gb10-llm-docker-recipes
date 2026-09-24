@@ -28,6 +28,16 @@ only shown where the same-model report includes a no-speculation baseline.
 | Nemotron-3 Super 120B NVFP4 | Speculative comparison | External MTPv2, 3 tokens | 30.03 | +27.8% | 60.8% | One repeat; historical reasoning labels | [Report](nemotron-3-super-120b-nvfp4/benchmarks/2026-09-17-mtp-comparison/) |
 | Mistral Small 4 119B NVFP4 | Speculative comparison | Baseline (no speculation) | 54.59 | +0.0% | n/a | Three repeats; EAGLE slower in every cell | [Report](mistral-small-4-119b-nvfp4/benchmarks/2026-09-17-eagle-comparison/) |
 
+## Throughput results
+
+These non-speculative matrices use the canonical ten-prompt Responses API
+workload. System output tok/s includes reasoning tokens, so visible-answer rate
+is reported beside throughput.
+
+| Model | Selected mode | Peak output tok/s | Visible-answer rate | Key qualification | Report |
+| --- | --- | ---: | ---: | --- | --- |
+| GPT-OSS 120B MXFP4 | Low effort, concurrency 6 | 73.07 | 100% | One repeat per cell; high peaked at 79.10 tok/s but only 2.5% of requests reached visible answers | [Report](gpt-oss-120b-mxfp4/benchmarks/2026-09-24-throughput-matrix/) |
+
 ## Capability results
 
 The [capability result contract](benchmark-results/capability/) is ready for
@@ -45,6 +55,6 @@ first complete comparable matrix passes the publication checks in AGENTS.md. -->
 | Model | Runtime | API port | Notes |
 | --- | --- | ---: | --- |
 | [Qwen3.8-Flash-Next](qwen3.8-flash-next/) | Pinned vLLM nightly | 8000 | MTP2 with staged disk-backed PLE and bundled overlays |
-| [GPT-OSS 120B MXFP4](gpt-oss-120b-mxfp4/) | vLLM 0.28.0 | 8041 | Candidate TP=1 recipe for validation on one GB10 |
+| [GPT-OSS 120B MXFP4](gpt-oss-120b-mxfp4/) | vLLM 0.28.0 | 8041 | Validated TP=1; low/c6 reaches 73.07 output tok/s |
 | [Mistral Small 4 119B NVFP4](mistral-small-4-119b-nvfp4/) | vLLM 0.28.0 | 8021 | Validated without speculative decoding/EAGLE |
 | [Nemotron-3 Super 120B NVFP4](nemotron-3-super-120b-nvfp4/) | vLLM 0.28.0 | 8031 | MTPv2 with 3 speculative tokens |

@@ -91,7 +91,8 @@ async def calibrated_prompt(client, model_id, target_tokens):
 
 def delta_text(delta):
     content = delta.content or ""
-    reasoning = (delta.model_extra or {}).get("reasoning_content") or ""
+    extra = delta.model_extra or {}
+    reasoning = extra.get("reasoning") or extra.get("reasoning_content") or ""
     return reasoning + content
 
 
@@ -163,6 +164,19 @@ def rebuild_aggregates(performance_dir):
     temporary.replace(request_path)
 
 
+def validate_cell(summary, cell_path):
+    requests = int(summary["requests"])
+    successes = int(summary["successes"])
+    failures = int(summary["failures"])
+    exact = int(summary["exact_output_count"])
+    if successes != requests or failures != 0 or exact != requests:
+        raise RuntimeError(
+            f"Invalid throughput cell {cell_path}: successes={successes}/{requests}, "
+            f"failures={failures}, exact_output_count={exact}. The raw cell was retained; "
+            "move it to a quarantine directory before rerunning."
+        )
+
+
 async def main():
     if not REASONING_EFFORT:
         raise RuntimeError(
@@ -200,6 +214,8 @@ async def main():
             for concurrency in CONCURRENCIES:
                 cell_path = cell_dir / f"{scenario['name']}_c{concurrency}.json"
                 if cell_path.exists():
+                    retained = json.loads(cell_path.read_text(encoding="utf-8"))
+                    validate_cell(retained["summary"], cell_path)
                     print(json.dumps({"resumed_cell": str(cell_path)}), flush=True)
                     continue
                 semaphore = asyncio.Semaphore(concurrency)
@@ -264,6 +280,7 @@ async def main():
                 atomic_json(cell_path, {"summary": summary, "requests": results})
                 rebuild_aggregates(performance_dir)
                 print(json.dumps(summary), flush=True)
+                validate_cell(summary, cell_path)
 
     rebuild_aggregates(performance_dir)
 

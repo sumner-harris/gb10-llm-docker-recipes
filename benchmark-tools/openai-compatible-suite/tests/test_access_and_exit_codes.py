@@ -195,6 +195,10 @@ class GPQAControlFlowTests(unittest.TestCase):
         )
         self.assertIn('os.getenv("PERF_TIMEOUT", "3600")', performance_runner)
         self.assertIn('"reasoning_effort": REASONING_EFFORT', performance_runner)
+        self.assertIn('extra.get("reasoning")', performance_runner)
+        self.assertIn('extra.get("reasoning_content")', performance_runner)
+        self.assertIn("def validate_cell(summary, cell_path):", performance_runner)
+        self.assertIn("move it to a quarantine directory", performance_runner)
         self.assertNotIn('os.getenv("EVAL_TIMEOUT"', performance_runner)
 
         probe = (SUITE_DIR / "scripts" / "probe_endpoint.py").read_text(encoding="utf-8")

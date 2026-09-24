@@ -32,6 +32,19 @@ an MTP-off baseline was measured in the same workload matrix.
 reports in the same top-level schema and replaces private absolute source paths
 with sanitized retained-result provenance. It does not alter measured values.
 
+## Responses API throughput matrix
+
+`build_responses_throughput_report.py` converts a complete retained
+`benchmark_speed_responses.py` cell tree into the standard CSV/JSON, Markdown,
+and five-plot artifact set without publishing raw prompts, responses, private
+endpoints, or absolute paths.
+
+```bash
+python benchmark-tools/reporting/build_responses_throughput_report.py \
+  benchmark-tools/openai-compatible-suite/results/gpt-oss-120b-mxfp4-20260924-responses/baseline \
+  gpt-oss-120b-mxfp4/benchmarks/2026-09-24-throughput-matrix
+```
+
 ## Capability chart
 
 Add audited rows to `benchmark-results/capability/scores.csv`, then run:

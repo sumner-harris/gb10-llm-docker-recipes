@@ -21,6 +21,10 @@ Before publishing, classify the run as exactly one of:
   call a parameter sweep a speedup or uplift measurement.
 - `capability`: task accuracy or instruction-following scores, separated by an
   explicitly captured reasoning mode.
+- `throughput_matrix`: a fixed deployment measured across reasoning modes and
+  concurrency levels without changing the server configuration. Report visible
+  answer rate alongside token throughput, and never describe mode-to-mode
+  differences as speculative-decoding uplift.
 
 Use the standard artifact names below, keep full precision in CSV/JSON, round
 only Markdown/plot labels, and derive every prose claim and plot from the

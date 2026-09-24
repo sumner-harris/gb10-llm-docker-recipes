@@ -1,12 +1,21 @@
 # GPT-OSS 120B MXFP4
 
-Candidate single-GB10 vLLM configuration for
+Validated single-GB10 vLLM configuration for
 [`openai/gpt-oss-120b`](https://huggingface.co/openai/gpt-oss-120b). It is
-intended for validation on an NVIDIA DGX Spark with 128 GB unified memory.
+tested on an NVIDIA DGX Spark with 128 GB unified memory.
 
 The official checkpoint stores its MoE weights in MXFP4, so no separate
 quantized checkpoint or online quantization step is needed. The 120B model is
 about 63 GB in MXFP4 according to the vLLM launch announcement.
+
+## Benchmark report
+
+The [full throughput matrix](benchmarks/2026-09-24-throughput-matrix/) contains
+12 measured cells and 120/120 successful Responses API requests across low,
+medium, and high reasoning effort at concurrency 1, 2, 4, and 6. Low effort at
+concurrency 6 is the practical selection: 73.07 system output tok/s with a
+100% visible-answer rate. High effort peaked at 79.10 tok/s, but only 2.5% of
+its measured requests reached visible answer text within the 512-token cap.
 
 ## Pinned artifacts
 
@@ -91,9 +100,9 @@ and lower memory target:
 GPU_MEMORY_UTILIZATION=0.70 MAX_MODEL_LEN=32768 ./launch.sh
 ```
 
-This is a candidate recipe until a successful Responses API request is
-recorded on the target DGX Spark. Do not label it known-good based only on the
-container reaching a running state.
+The configuration is validated with both a real Responses API smoke request and
+the dated throughput matrix above. A running container still is not sufficient
+evidence by itself; wait for `GET /v1/models` and send a generation request.
 
 ## References
 

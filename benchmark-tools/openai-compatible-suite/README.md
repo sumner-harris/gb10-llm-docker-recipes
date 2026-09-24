@@ -68,6 +68,11 @@ TTFT p50/p95, end-to-end p50/p95/mean, usage, finish reasons, and failures.
 Each cell is written atomically before the next begins, so rerunning with the
 same `RUN_DIR` resumes completed cells.
 
+The runner stops immediately after atomically retaining a cell with failures,
+non-exact output counts, or other invalid completion evidence. Resume also
+refuses an invalid retained cell; move it to a quarantine directory before a
+clean rerun rather than silently mixing it into valid aggregates.
+
 ## Install and configure
 
 Requirements: Linux, Bash, Python 3.10 or newer, and network access to a vLLM
