@@ -1,7 +1,8 @@
 # GB10 LLM Docker recipes
 
-Known-good, reproducible Docker launch recipes for open-weight LLMs on NVIDIA
-GB10 systems such as DGX Spark and HP ZGX Nano.
+Reproducible Docker launch recipes for open-weight LLMs on NVIDIA GB10 systems
+such as DGX Spark and HP ZGX Nano. Each recipe states whether it is validated
+or still a candidate awaiting hardware results.
 
 Each recipe pins both the serving image and model checkpoint. Secrets are never
 stored in the repository; gated models read `HF_TOKEN` from the environment.
@@ -44,5 +45,6 @@ first complete comparable matrix passes the publication checks in AGENTS.md. -->
 | Model | Runtime | API port | Notes |
 | --- | --- | ---: | --- |
 | [Qwen3.8-Flash-Next](qwen3.8-flash-next/) | Pinned vLLM nightly | 8000 | MTP2 with staged disk-backed PLE and bundled overlays |
+| [GPT-OSS 120B MXFP4](gpt-oss-120b-mxfp4/) | vLLM 0.28.0 | 8041 | Candidate TP=1 recipe for validation on one GB10 |
 | [Mistral Small 4 119B NVFP4](mistral-small-4-119b-nvfp4/) | vLLM 0.28.0 | 8021 | Validated without speculative decoding/EAGLE |
 | [Nemotron-3 Super 120B NVFP4](nemotron-3-super-120b-nvfp4/) | vLLM 0.28.0 | 8031 | MTPv2 with 3 speculative tokens |
