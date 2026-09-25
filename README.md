@@ -31,12 +31,13 @@ only shown where the same-model report includes a no-speculation baseline.
 ## Throughput results
 
 These non-speculative matrices use the canonical ten-prompt Responses API
-workload. System output tok/s includes reasoning tokens, so visible-answer rate
-is reported beside throughput.
+workload. The table reports concurrency-1 output speed as the closest measure
+of single-stream generation speed. System output tok/s includes reasoning
+tokens; the linked report contains the full concurrency matrix.
 
-| Model | Selected mode | Peak output tok/s | Visible-answer rate | Key qualification | Report |
-| --- | --- | ---: | ---: | --- | --- |
-| GPT-OSS 120B MXFP4 | Low effort, concurrency 6 | 73.07 | 100% | One repeat per cell; high peaked at 79.10 tok/s but only 2.5% of requests reached visible answers | [Report](gpt-oss-120b-mxfp4/benchmarks/2026-09-24-throughput-matrix/) |
+| Model | Reasoning mode | Concurrency-1 output tok/s | Report |
+| --- | --- | ---: | --- |
+| GPT-OSS 120B MXFP4 | Low effort | 33.81 | [Report](gpt-oss-120b-mxfp4/benchmarks/2026-09-24-throughput-matrix/) |
 
 ## Capability results
 
