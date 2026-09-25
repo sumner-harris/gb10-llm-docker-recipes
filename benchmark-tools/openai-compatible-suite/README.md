@@ -131,6 +131,15 @@ bash scripts/postprocess_capability.sh
 .venv/bin/python scripts/run_perf.py
 ```
 
+GPQA writes `gpqa_score_robust_aa_v1.json` and makes it the reporting metric
+through `gpqa_score_primary.json`. The original lm-eval flexible-extract score
+is retained, hashed, and labeled pre-correction in
+`gpqa_score_native_lm_eval_precorrection.json`. The robust extractor follows
+the published Artificial Analysis priority for explicit `Answer: X`, boxed
+answers, and fallback answer forms (restricted to GPQA choices A-D); this
+avoids lm-eval's last-parenthesized-letter failure on option enumerations and
+chemical descriptors such as `(Z)`.
+
 Do not run AIME, IFEval, GPQA, the capability audit, or another load generator
 while measuring throughput on the same endpoint. One benchmark client can run
 against each independent server in parallel, but two clients must not share a

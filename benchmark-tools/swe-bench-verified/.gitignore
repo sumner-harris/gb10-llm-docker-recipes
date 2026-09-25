@@ -1,0 +1,11 @@
+.venv-agent/
+.venv-harness/
+data/
+results/
+vendor/
+endpoints.env
+manifests/setup_validation.json
+run-authorization
+*.lock
+__pycache__/
+*.py[cod]
