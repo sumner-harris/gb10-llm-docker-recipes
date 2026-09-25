@@ -32,15 +32,13 @@ only shown where the same-model report includes a no-speculation baseline.
 
 ## Capability results
 
-The [capability result contract](benchmark-results/capability/) is ready for
-the explicit reasoning-mode campaign now running. The main-page grouped
-vertical bar chart will be published at
-`benchmark-results/capability/capability-comparison.png` once a comparable,
-audited matrix has completed. Provisional, capped, and reference-only runs are
-excluded from that chart.
+The [finalized score matrix](benchmark-results/capability/finalized-scores.md)
+and [machine-readable CSV](benchmark-results/capability/scores.csv) contain
+only completed explicit temperature-zero task runs. Hatched bars mark runs in
+which capped/null single responses were retained and scored incorrect.
+Reference-only, vendor-extra, partial, and active runs are excluded.
 
-<!-- CAPABILITY_CHART: replace this note with the generated image after the
-first complete comparable matrix passes the publication checks in AGENTS.md. -->
+![Finalized capability benchmark comparison](benchmark-results/capability/capability-comparison.png)
 
 ## Recipes
 

@@ -42,6 +42,9 @@ python benchmark-tools/reporting/render_capability_chart.py \
   benchmark-results/capability/capability-comparison.png
 ```
 
-The renderer intentionally rejects an empty dataset and excludes every row not
-marked `PASS`. Do not chart reference-only, capped, partial, or provisional
-scores.
+The renderer writes the canonical overview plus separate AIME, GPQA, and
+IFEval PNGs. It rejects an empty dataset and includes only `PASS` and
+`PASS_WITH_INVALID_OUTPUTS` rows. The latter are finalized under the pinned
+one-response policy and are hatched because capped/null responses were scored
+incorrect. Reference-only, vendor-extra, partial, active, and provisional rows
+remain excluded.
